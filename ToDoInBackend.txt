@@ -1,0 +1,5 @@
+To list the appointments in dashboard
+[] /appointments/me/d,
+[] /appointments/me/u,
+
+

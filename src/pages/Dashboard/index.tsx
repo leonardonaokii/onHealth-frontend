@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiClock, FiPower } from 'react-icons/fi';
+import { FiClock, FiPower, FiChevronRight } from 'react-icons/fi';
 import { isToday, format, isAfter } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import DayPicker, { DayModifiers } from 'react-day-picker';
@@ -17,25 +17,28 @@ import {
   Appointment,
   Calendar,
   HeaderOptions,
+  NoAvatarContainer,
 } from './styles';
 import { useAuth } from '../../hooks/auth';
 import 'react-day-picker/lib/style.css';
 
 import logoImg from '../../assets/logo.jpg';
 import api from '../../services/api';
-import Button from '../../components/Button';
 
 interface MonthAvailabilityItem {
   day: number;
   available: boolean;
 }
 
+// Falta listar os appointments do dia.
+
 interface Appointment {
   id: string;
   date: string;
   hourFormatted: string;
-  user: {
-    name: string;
+  patient: {
+    first_name: string;
+    last_name: string;
     avatar_url: string;
   };
 }
@@ -64,7 +67,25 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (user.type === 'doctor') {
       api
-        .get<Appointment[]>('/appointments/me/d', {
+        .get<Appointment[]>('/appointments/doctor', {
+          params: {
+            year: selectedDate.getFullYear(),
+            month: selectedDate.getMonth() + 1,
+            day: selectedDate.getDate(),
+          },
+        })
+        .then(response => {
+          const appointmentsFormatted = response.data.map(appointment => {
+            return {
+              ...appointment,
+              hourFormatted: format(parseISO(appointment.date), 'HH:mm'),
+            };
+          });
+          setAppointments(appointmentsFormatted);
+        });
+    } else {
+      api
+        .get<Appointment[]>('/appointments/user', {
           params: {
             year: selectedDate.getFullYear(),
             month: selectedDate.getMonth() + 1,
@@ -81,25 +102,7 @@ const Dashboard: React.FC = () => {
           setAppointments(appointmentsFormatted);
         });
     }
-
-    api
-      .get<Appointment[]>('/appointments/me/u', {
-        params: {
-          year: selectedDate.getFullYear(),
-          month: selectedDate.getMonth() + 1,
-          day: selectedDate.getDate(),
-        },
-      })
-      .then(response => {
-        const appointmentsFormatted = response.data.map(appointment => {
-          return {
-            ...appointment,
-            hourFormatted: format(parseISO(appointment.date), 'HH:mm'),
-          };
-        });
-        setAppointments(appointmentsFormatted);
-      });
-  }, [selectedDate]);
+  }, [selectedDate, user.type]);
 
   const disabledDays = useMemo(() => {
     const dates = monthAvailability
@@ -132,20 +135,35 @@ const Dashboard: React.FC = () => {
     <Container>
       <Header>
         <HeaderContent>
-          <img src={logoImg} alt="GoBarber" />
+          <Link to="/">
+            <img src={logoImg} alt="OnHealth" />
+          </Link>
 
           <Profile>
-            <img src={user.avatar_url} alt={user.first_name} />
+            {user.avatar_url && (
+              <img src={user.avatar_url} alt={user.avatar_url} />
+            )}
+            {!user.avatar_url && (
+              <NoAvatarContainer>
+                <span>{`${user.first_name
+                  .charAt(0)
+                  .toUpperCase()}${user.last_name
+                  .charAt(0)
+                  .toUpperCase()}`}</span>
+              </NoAvatarContainer>
+            )}
             <div>
               <span>Bem-vindo,</span>
               <Link to="/profile">
-                <strong>{user.first_name}</strong>
+                <strong>{`${user.first_name} ${user.last_name}`}</strong>
               </Link>
             </div>
           </Profile>
 
           <HeaderOptions>
-            <Link to="/create-appointment">Nova consulta</Link>
+            {user.type === 'user' && (
+              <Link to="/create-appointment">Nova consulta</Link>
+            )}
             <Link to="/history">Meu Hisórico</Link>
           </HeaderOptions>
 
@@ -169,10 +187,14 @@ const Dashboard: React.FC = () => {
               <strong>Agendamento a seguir</strong>
               <div>
                 <img
-                  src={nextAppointment.user.avatar_url}
-                  alt={nextAppointment.user.name}
+                  src={nextAppointment.patient.avatar_url}
+                  alt={nextAppointment.patient.first_name}
                 />
-                <strong>{nextAppointment.user.name}</strong>
+                <strong>{`${nextAppointment.patient.first_name
+                  .charAt(0)
+                  .toUpperCase()}${nextAppointment.patient.first_name
+                  .charAt(0)
+                  .toUpperCase()}`}</strong>
                 <span>
                   <FiClock />
                   {nextAppointment.hourFormatted}
@@ -194,10 +216,21 @@ const Dashboard: React.FC = () => {
                 </span>
                 <div>
                   <img
-                    src={appointment.user.avatar_url}
-                    alt={appointment.user.name}
+                    src={appointment.patient.avatar_url}
+                    alt={`${appointment.patient.first_name
+                      .charAt(0)
+                      .toUpperCase()}${appointment.patient.last_name
+                      .charAt(0)
+                      .toUpperCase()}`}
                   />
-                  <strong>{appointment.user.name}</strong>
+
+                  <strong>
+                    {`${appointment.patient.first_name} ${appointment.patient.last_name}`}
+                  </strong>
+
+                  <Link to={`/appointment/${appointment.id}`}>
+                    <FiChevronRight />
+                  </Link>
                 </div>
               </Appointment>
             ))}

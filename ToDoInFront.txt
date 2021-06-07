@@ -1,0 +1,7 @@
+[X] Signin
+[Falta listar as especialidades médicas] Signup
+[Falta listar os appointments, sendo possível clicar em cadas appointment] Dashboard
+[Formatar a data e se possível adicionar alteração de médico] Profile
+[] New Appointment
+[] Appointment
+[] History

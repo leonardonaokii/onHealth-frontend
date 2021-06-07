@@ -23,6 +23,8 @@ import logoImg from '../../assets/logo.jpg';
 import getValidationErrors from '../../utils/getValidationErrors';
 import api from '../../services/api';
 
+// falta listar as especialidades médicas
+
 interface SignUpFormData {
   first_name: string;
   last_name: string;

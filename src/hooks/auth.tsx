@@ -8,6 +8,15 @@ interface User {
   email: string;
   type: string;
   avatar_url: string;
+  cpf: string;
+  phone: string;
+  gender: string;
+  birth_date: string;
+  country: string;
+  administrative_area: string;
+  locality: string;
+  thoroughfare: string;
+  zipcode: string;
 }
 
 interface AuthState {

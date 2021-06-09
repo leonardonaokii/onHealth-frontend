@@ -1,18 +1,29 @@
-import { DropdownItemProps } from 'react-bootstrap/esm/DropdownItem';
-import { FiChevronLeft } from 'react-icons/fi';
-import { useHistory } from 'react-router-dom';
+import DatePicker from 'react-datepicker';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import { ChangeEvent, useState, useEffect, useCallback } from 'react';
+import { format } from 'date-fns';
+import { ChangeEvent, useState, useEffect, useCallback, useMemo } from 'react';
 import { DropdownButton, Dropdown } from 'react-bootstrap';
+import { useHistory } from 'react-router-dom';
 import Header from '../../components/Header';
-import { Container, Content, DoctorProfile } from './styles';
+
+import {
+  Container,
+  Content,
+  DoctorProfile,
+  DoctorProfileContainer,
+  DateContainer,
+  HourWrapper,
+  Hour,
+} from './styles';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import api from '../../services/api';
+import { useToast } from '../../hooks/toast';
 
 interface MedicalSpecialty {
   id: number;
@@ -20,8 +31,8 @@ interface MedicalSpecialty {
 }
 
 interface Doctor {
-  id: number;
-  medical_specialty: {
+  id: string;
+  medspec: {
     id: number;
     name: string;
   };
@@ -30,6 +41,11 @@ interface Doctor {
     last_name: string;
     avatar_url: string;
   };
+}
+
+interface AvailabilityItem {
+  hour: number;
+  available: boolean;
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -51,13 +67,24 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const NewAppointment: React.FC = () => {
   const classes = useStyles();
+  const history = useHistory();
+  const { addToast } = useToast();
   const [expanded, setExpanded] = useState<string | false>(false);
   const [medSpecialties, setMedSpecialties] = useState<MedicalSpecialty[]>([]);
   const [selectedMedSpec, setSelectedMedSpec] = useState<string>(
     'Selecione a especialidade médica',
   );
   const [doctors, setDoctor] = useState<Doctor[]>([]);
+
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const [availability, setAvailability] = useState<AvailabilityItem[]>([]);
+
+  const [selectedHour, setSelectedHour] = useState(0);
+
+  const [description, setDescription] = useState('');
 
   const handleChange = (panel: string) => (
     event: ChangeEvent<Record<string, unknown>>,
@@ -75,23 +102,82 @@ const NewAppointment: React.FC = () => {
   useEffect(() => {
     api.get<Doctor[]>('/doctors/all').then(response => {
       setDoctor(response.data);
-      console.log(response.data);
     });
   }, []);
+
+  useEffect(() => {
+    if (!selectedDoctor) {
+      return;
+    }
+    api
+      .get(`/appointments/doctor/${selectedDoctor}/day-availability`, {
+        params: {
+          year: selectedDate.getFullYear(),
+          month: selectedDate.getMonth() + 1,
+          day: selectedDate.getDate(),
+        },
+      })
+      .then(response => {
+        setAvailability(response.data);
+        console.log(response.data);
+      });
+  }, [selectedDate, selectedDoctor]);
+
+  const hoursFormatted = useMemo(() => {
+    return availability.map(({ hour, available }) => {
+      return {
+        hour,
+        available,
+        hourFormatted: format(new Date().setHours(hour), 'HH:00'),
+      };
+    });
+  }, [availability]);
 
   const handleSelectMedSpec = useCallback(e => {
     setSelectedMedSpec(e);
   }, []);
 
-  const handleSelectDoctor = useCallback(e => {
-    setSelectedDoctor(e);
-  }, []);
+  const handleCreateAppointment = useCallback(async () => {
+    const date = selectedDate.setHours(selectedHour);
+
+    const newAppointment = {
+      doctor_id: selectedDoctor,
+      date,
+      symptoms: 0,
+      description,
+    };
+
+    try {
+      await api.post('/appointments', newAppointment);
+      history.push('/');
+
+      addToast({
+        type: 'success',
+        title: 'Cadastro Realizado!',
+        description: 'Você já pode fazer seu logon no onHealth!',
+      });
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Erro a criar consulta!',
+        description:
+          'Erro a criar consulta, verifique os dados e tente novamente!',
+      });
+    }
+  }, [
+    addToast,
+    description,
+    history,
+    selectedDate,
+    selectedDoctor,
+    selectedHour,
+  ]);
 
   return (
     <Container>
       <Header />
       <Content>
-        <h1>Novo Agendamento</h1>
+        <h1>Novo Consulta</h1>
         <div className={classes.root}>
           <Accordion
             expanded={expanded === 'panel1'}
@@ -142,18 +228,23 @@ const NewAppointment: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Typography>
-                {doctors.map(doctor => (
-                  <DoctorProfile>
-                    <img
-                      src={doctor.user.avatar_url}
-                      alt={`${doctor.user.first_name} ${doctor.user.last_name}`}
-                    />
-                    <div>
-                      <strong>{`${doctor.user.first_name} ${doctor.user.last_name}`}</strong>
-                      <span>{doctor.medical_specialty.name}</span>
-                    </div>
-                  </DoctorProfile>
-                ))}
+                <DoctorProfileContainer>
+                  {doctors.map(doctor => (
+                    <DoctorProfile
+                      onClick={() => setSelectedDoctor(doctor.id)}
+                      key={doctor.id}
+                      selected={selectedDoctor === doctor.id}
+                    >
+                      <img
+                        src={doctor.user.avatar_url}
+                        alt={`${doctor.user.first_name} ${doctor.user.last_name}`}
+                      />
+                      <div>
+                        <strong>{`${doctor.user.first_name} ${doctor.user.last_name}`}</strong>
+                      </div>
+                    </DoctorProfile>
+                  ))}
+                </DoctorProfileContainer>
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -168,14 +259,35 @@ const NewAppointment: React.FC = () => {
             >
               <Typography className={classes.heading}>Passo 3.</Typography>
               <Typography className={classes.secondaryHeading}>
-                Selecione o horário disponível.
+                Selecione a data e horário desejado.
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Typography>
-                Nunc vitae orci ultricies, auctor nunc in, volutpat nisl.
-                Integer sit amet egestas eros, vitae egestas augue. Duis vel est
-                augue.
+                <DateContainer>
+                  <DatePicker
+                    dateFormat="dd/MM/yyyy"
+                    selected={selectedDate}
+                    onChange={date =>
+                      date instanceof Date ? setSelectedDate(date) : null
+                    }
+                  />
+                  <HourWrapper className="hourAvailability">
+                    {hoursFormatted.map(
+                      availableHour =>
+                        availableHour.available && (
+                          <Hour
+                            key={availableHour.hour}
+                            type="button"
+                            onClick={() => setSelectedHour(availableHour.hour)}
+                            selected={selectedHour === availableHour.hour}
+                          >
+                            {availableHour.hourFormatted}
+                          </Hour>
+                        ),
+                    )}
+                  </HourWrapper>
+                </DateContainer>
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -189,12 +301,30 @@ const NewAppointment: React.FC = () => {
               id="panel4bh-header"
             >
               <Typography className={classes.heading}>Passo 4</Typography>
+              <Typography className={classes.secondaryHeading}>
+                Preencha o campo abaixo com os sintomas, alergias e remédios que
+                utiliza.
+              </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>Preencha os dados para a consulta</Typography>
+              <Typography>
+                <TextareaAutosize
+                  aria-label="minimum height"
+                  rowsMin={3}
+                  style={{ width: '800px' }}
+                  onChange={e => setDescription(e.target.value)}
+                />
+              </Typography>
             </AccordionDetails>
           </Accordion>
         </div>
+        <button
+          className="buttonSubmit"
+          type="button"
+          onClick={handleCreateAppointment}
+        >
+          Agendar Consulta
+        </button>
       </Content>
     </Container>
   );

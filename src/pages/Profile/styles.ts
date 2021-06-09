@@ -31,6 +31,7 @@ export const Content = styled.div`
     p {
       font-size: 16px;
       font-weight: 500;
+      margin: 0;
     }
     span {
       font-size: 14px;
@@ -56,6 +57,7 @@ export const Content = styled.div`
       font-size: 16px;
       font-weight: 500;
       margin-right: 8px;
+      margin-bottom: 0;
     }
   }
 

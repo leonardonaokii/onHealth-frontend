@@ -46,13 +46,13 @@ export const NextAppointment = styled.div`
   margin-top: 64px;
 
   > strong {
-    color: #999591;
-    font-size: 20px;
-    font-weight: 400;
+    color: #3e3b47;
+    font-size: 24px;
+    font-weight: 500;
   }
 
   div {
-    background: #837fd3;
+    background: #948fe4;
     display: flex;
     align-items: center;
     padding: 16px 24px;
@@ -67,7 +67,7 @@ export const NextAppointment = styled.div`
       left: 0;
       top: 10%;
       content: '';
-      background: #837fd3;
+      background: #948fe4;
     }
 
     img {
@@ -78,18 +78,18 @@ export const NextAppointment = styled.div`
 
     strong {
       margin-left: 24px;
-      color: #000000;
-      font-size: 24px;
+      color: #3e3b47;
+      font-size: 20px;
     }
 
     span {
       margin-left: auto;
       display: flex;
       align-items: center;
-      color: #000000;
+      color: #3e3b47;
 
       svg {
-        color: #000000;
+        color: #3e3b47;
         margin-right: 8px;
       }
     }
@@ -111,8 +111,8 @@ export const Section = styled.section`
   margin-top: 48px;
 
   strong {
-    color: #999591;
-    font-size: 20px;
+    color: #3e3b47;
+    font-size: 24px;
     line-height: 26px;
     border-bottom: 1px solid #3e3b47;
     display: block;
@@ -121,7 +121,7 @@ export const Section = styled.section`
   }
 
   > p {
-    color: #999591;
+    color: #3e3b47;
   }
 `;
 
@@ -137,7 +137,7 @@ export const Appointment = styled.div`
     margin-left: auto;
     display: flex;
     align-items: center;
-    color: #000000;
+    color: #3e3b47;
     width: 70px;
 
     svg {
@@ -148,7 +148,7 @@ export const Appointment = styled.div`
 
   div {
     flex: 1;
-    background: #837fd3;
+    background: #948fe4;
     display: flex;
     align-items: center;
     padding: 16px 24px;
@@ -164,7 +164,7 @@ export const Appointment = styled.div`
     strong {
       margin-left: 24px;
       padding: 0;
-      color: #000;
+      color: #3e3b47;
       font-size: 20px;
     }
 

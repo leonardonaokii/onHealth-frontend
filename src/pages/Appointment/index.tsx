@@ -1,11 +1,8 @@
-import { Container } from './styles';
+import { Container, Content } from './styles';
+import Header from '../../components/Header';
 
 const Appointments: React.FC = () => {
-  return (
-    <div>
-      <h1>Oi</h1>
-    </div>
-  );
+  return <Header />;
 };
 
 export default Appointments;

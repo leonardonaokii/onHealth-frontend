@@ -1,4 +1,5 @@
 import {
+  ChangeEvent,
   InputHTMLAttributes,
   useCallback,
   useEffect,
@@ -14,34 +15,25 @@ import { Container, Error } from './styles';
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;
   icon?: React.ComponentType<IconBaseProps>;
-  date?: boolean;
 }
 
-const Input: React.FC<InputProps> = ({ name, icon: Icon, date, ...rest }) => {
+const Input: React.FC<InputProps> = ({ name, icon: Icon, ...rest }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [isFilled, setIsFilled] = useState(false);
-  const [dateInputType, setDateInputType] = useState('text');
+  const [formattedDate, setFormattedDate] = useState('');
 
   const { fieldName, defaultValue, error, registerField } = useField(name);
 
   const handleInputFocus = useCallback(() => {
     setIsFocused(true);
-
-    if (date) {
-      setDateInputType('date');
-    }
-  }, [date]);
+  }, []);
 
   const handleInputBlur = useCallback(() => {
     setIsFocused(false);
 
-    if (date) {
-      setDateInputType('text');
-    }
-
     setIsFilled(!!inputRef.current?.value);
-  }, [date]);
+  }, []);
 
   useEffect(() => {
     registerField({
@@ -51,16 +43,29 @@ const Input: React.FC<InputProps> = ({ name, icon: Icon, date, ...rest }) => {
     });
   }, [fieldName, registerField]);
 
+  useEffect(() => {
+    const dateArray = defaultValue.split('-');
+
+    const day = dateArray[2].slice(0, 2);
+
+    const parsedDate = `${day}/${dateArray[1]}/${dateArray[0]}`;
+
+    setFormattedDate(parsedDate);
+  }, []);
+
+  // useEffect((e : ChangeEvent<HTMLInputElement>) => {
+
+  // }, []);
+
   return (
     <Container isErrored={!!error} isFilled={isFilled} isFocused={isFocused}>
       {Icon && <Icon size={20} />}
       <input
         onFocus={handleInputFocus}
         onBlur={handleInputBlur}
-        defaultValue={defaultValue}
+        defaultValue={formattedDate}
         ref={inputRef}
         {...rest}
-        type={date ? dateInputType : rest.type}
       />
       {error && (
         <Error title={error}>

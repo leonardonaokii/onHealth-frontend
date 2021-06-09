@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { shade } from 'polished';
 
 export const Container = styled.div`
-  min-height: 1200px;
+  min-height: 1250px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,6 +10,41 @@ export const Container = styled.div`
 `;
 
 export const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  padding: 0 20px;
+  min-width: 700px;
+  width: 100%;
+  max-width: 700px;
+  height: 100vh;
+  min-height: 1250px;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+
+  .GenderRadioButton {
+    display: flex;
+    align-items: center;
+    width: 80%;
+    flex: 0 1 auto;
+    margin: 8px 0;
+    p {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    span {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    label {
+      margin-left: 10px;
+      span {
+        padding: 0;
+      }
+    }
+  }
+
   header {
     position: absolute;
 
@@ -31,18 +66,6 @@ export const Content = styled.div`
     }
   }
 
-  display: flex;
-  flex-direction: column;
-  background: #ffffff;
-  padding: 0 20px;
-  min-width: 700px;
-  width: 100%;
-  max-width: 700px;
-  height: 100vh;
-  min-height: 1200px;
-
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
-
   form {
     display: flex;
     justify-content: center;
@@ -56,7 +79,7 @@ export const Content = styled.div`
     }
 
     label {
-      margin: 15px 0;
+      margin: 5px 0;
       background: #ffffff;
       input {
         margin-right: 5px;

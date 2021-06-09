@@ -15,11 +15,14 @@ import {
 } from 'react-icons/fi';
 import { Link, useHistory } from 'react-router-dom';
 
-import { ChangeEvent, useCallback, useRef } from 'react';
+import { ChangeEvent, useCallback, useMemo, useRef, useState } from 'react';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
+import { FormControlLabel, Radio } from '@material-ui/core';
+import DatePicker from 'react-datepicker';
 import Input from '../../components/Input';
+import DateInput from '../../components/DateInput';
 import Button from '../../components/Button';
 import {
   Container,
@@ -46,7 +49,6 @@ interface ProfileFormData {
   old_password: string;
   password: string;
   password_confirmation: string;
-  gender: 'male' | 'female' | undefined;
   birth_date: string;
   country: string;
   administrative_area: string;
@@ -62,6 +64,8 @@ const Profile: React.FC = () => {
   const { addToast } = useToast();
   const history = useHistory();
   const { user, updateUser } = useAuth();
+  const [genderValue, setGenderValue] = useState(user.gender);
+  const [birthDate, setBirthDate] = useState(new Date(user.birth_date));
 
   const handleSubmit = useCallback(
     async (data: ProfileFormData) => {
@@ -87,7 +91,6 @@ const Profile: React.FC = () => {
               otherwise: Yup.string(),
             })
             .oneOf([Yup.ref('password'), null], 'Confirmação Incorreta'),
-          gender: Yup.string(),
           birth_date: Yup.string(),
           country: Yup.string(),
           administrative_area: Yup.string(),
@@ -111,7 +114,6 @@ const Profile: React.FC = () => {
           old_password,
           password,
           password_confirmation,
-          gender,
           birth_date,
           country,
           administrative_area,
@@ -122,20 +124,26 @@ const Profile: React.FC = () => {
           // medical_specialty,
         } = data;
 
+        const bdate = birth_date.split('/');
+
+        const formattedDate = `${bdate[2]}-${bdate[1]}-${bdate[0]}`;
+
+        console.log(genderValue);
+
         const userData = {
           first_name,
           last_name,
           email,
           cpf,
           phone,
-          ...(data.gender
+          ...(genderValue
             ? {
-                gender,
+                gender: genderValue,
               }
             : {}),
           ...(data.birth_date
             ? {
-                birth_date,
+                birth_date: formattedDate,
               }
             : {}),
           ...(data.country
@@ -205,7 +213,7 @@ const Profile: React.FC = () => {
         });
       }
     },
-    [addToast, history],
+    [addToast, history, genderValue, updateUser],
   );
 
   const handleAvatarChange = useCallback(
@@ -226,6 +234,14 @@ const Profile: React.FC = () => {
       }
     },
     [addToast, updateUser],
+  );
+
+  const handleGenderRadioButton = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setGenderValue(e.target.value);
+      // console.warn(genderValue);
+    },
+    [],
   );
 
   return (
@@ -298,13 +314,24 @@ const Profile: React.FC = () => {
             placeholder="Confirmar Senha"
             type="password"
           />
-          <Input name="gender" icon={FiCircle} placeholder="Sexo" type="text" />
-          <Input
-            name="birth_date"
-            icon={FiCalendar}
-            placeholder="Data de Nascimento"
-            type="text"
-          />
+          <div className="GenderRadioButton">
+            <p>Sexo: </p>
+            <FormControlLabel
+              control={
+                <Radio value="female" onChange={handleGenderRadioButton} />
+              }
+              label="Feminino"
+              checked={genderValue === 'female'}
+            />
+            <FormControlLabel
+              control={
+                <Radio value="male" onChange={handleGenderRadioButton} />
+              }
+              label="Masculino"
+              checked={genderValue === 'male'}
+            />
+          </div>
+
           <Input name="country" icon={FiMap} placeholder="País" type="text" />
           <Input
             name="administrative_area"
@@ -328,6 +355,16 @@ const Profile: React.FC = () => {
           <Button type="submit">Atualizar</Button>
         </Form>
       </Content>
+      <div>
+        <DatePicker
+          selected={birthDate}
+          onChange={date => {
+            if (date instanceof Date) {
+              setBirthDate(date);
+            }
+          }}
+        />
+      </div>
     </Container>
   );
 };

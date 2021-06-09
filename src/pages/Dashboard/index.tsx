@@ -7,23 +7,20 @@ import { parseISO } from 'date-fns/esm';
 import { Link } from 'react-router-dom';
 import {
   Container,
-  Header,
-  HeaderContent,
-  Profile,
   Content,
   Schedule,
   NextAppointment,
   Section,
   Appointment,
   Calendar,
-  HeaderOptions,
-  NoAvatarContainer,
 } from './styles';
 import { useAuth } from '../../hooks/auth';
 import 'react-day-picker/lib/style.css';
 
 import logoImg from '../../assets/logo.jpg';
 import api from '../../services/api';
+
+import Header from '../../components/Header';
 
 interface MonthAvailabilityItem {
   day: number;
@@ -39,6 +36,10 @@ interface Appointment {
   patient: {
     first_name: string;
     last_name: string;
+    avatar_url: string;
+  };
+  doctor: {
+    medical_specialty: string;
     avatar_url: string;
   };
 }
@@ -132,139 +133,103 @@ const Dashboard: React.FC = () => {
   }, [appointments]);
 
   return (
-    <Container>
-      <Header>
-        <HeaderContent>
-          <Link to="/">
-            <img src={logoImg} alt="OnHealth" />
-          </Link>
+    <>
+      <Container>
+        <Header />
+        <Content>
+          <Schedule>
+            <h1>Horários agendados</h1>
+            <p>
+              {isToday(selectedDate) && <span>Hoje</span>}
+              <span>{selectedDateAsText}</span>
+              <span>{selectedWeekDay}</span>
+            </p>
 
-          <Profile>
-            {user.avatar_url && (
-              <img src={user.avatar_url} alt={user.avatar_url} />
-            )}
-            {!user.avatar_url && (
-              <NoAvatarContainer>
-                <span>{`${user.first_name
-                  .charAt(0)
-                  .toUpperCase()}${user.last_name
-                  .charAt(0)
-                  .toUpperCase()}`}</span>
-              </NoAvatarContainer>
-            )}
-            <div>
-              <span>Bem-vindo,</span>
-              <Link to="/profile">
-                <strong>{`${user.first_name} ${user.last_name}`}</strong>
-              </Link>
-            </div>
-          </Profile>
-
-          <HeaderOptions>
-            {user.type === 'user' && (
-              <Link to="/create-appointment">Nova consulta</Link>
-            )}
-            <Link to="/history">Meu Hisórico</Link>
-          </HeaderOptions>
-
-          <button type="button" onClick={signOut}>
-            <FiPower />
-          </button>
-        </HeaderContent>
-      </Header>
-
-      <Content>
-        <Schedule>
-          <h1>Horários agendados</h1>
-          <p>
-            {isToday(selectedDate) && <span>Hoje</span>}
-            <span>{selectedDateAsText}</span>
-            <span>{selectedWeekDay}</span>
-          </p>
-
-          {isToday(selectedDate) && nextAppointment && (
-            <NextAppointment>
-              <strong>Agendamento a seguir</strong>
-              <div>
-                <img
-                  src={nextAppointment.patient.avatar_url}
-                  alt={nextAppointment.patient.first_name}
-                />
-                <strong>{`${nextAppointment.patient.first_name
-                  .charAt(0)
-                  .toUpperCase()}${nextAppointment.patient.first_name
-                  .charAt(0)
-                  .toUpperCase()}`}</strong>
-                <span>
-                  <FiClock />
-                  {nextAppointment.hourFormatted}
-                </span>
-              </div>
-            </NextAppointment>
-          )}
-
-          <Section>
-            <strong>Agendamentos</strong>
-
-            {appointments.length === 0 && <p>Nenhum agendamento neste dia</p>}
-
-            {appointments.map(appointment => (
-              <Appointment key={appointment.id}>
-                <span>
-                  <FiClock />
-                  {appointment.hourFormatted}
-                </span>
+            {isToday(selectedDate) && nextAppointment && (
+              <NextAppointment>
+                <strong>Agendamento a seguir</strong>
                 <div>
                   <img
-                    src={appointment.patient.avatar_url}
-                    alt={`${appointment.patient.first_name
-                      .charAt(0)
-                      .toUpperCase()}${appointment.patient.last_name
-                      .charAt(0)
-                      .toUpperCase()}`}
+                    src={nextAppointment.patient.avatar_url}
+                    alt={nextAppointment.patient.first_name}
                   />
-
-                  <strong>
-                    {`${appointment.patient.first_name} ${appointment.patient.last_name}`}
-                  </strong>
-
-                  <Link to={`/appointment/${appointment.id}`}>
-                    <FiChevronRight />
-                  </Link>
+                  <strong>{`${nextAppointment.patient.first_name
+                    .charAt(0)
+                    .toUpperCase()}${nextAppointment.patient.first_name
+                    .charAt(0)
+                    .toUpperCase()}`}</strong>
+                  <span>
+                    <FiClock />
+                    {nextAppointment.hourFormatted}
+                  </span>
                 </div>
-              </Appointment>
-            ))}
-          </Section>
-        </Schedule>
-        <Calendar>
-          <DayPicker
-            weekdaysShort={['D', 'S', 'T', 'Q', 'Q', 'S', 'S']}
-            fromMonth={new Date()}
-            disabledDays={[...disabledDays]}
-            modifiers={{
-              available: { daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
-            }}
-            onMonthChange={handleMonthChange}
-            selectedDays={selectedDate}
-            onDayClick={handleDateChange}
-            months={[
-              'Janeiro',
-              'Fevereiro',
-              'Março',
-              'Abril',
-              'Maio',
-              'Junho',
-              'Julho',
-              'Agosto',
-              'Setembro',
-              'Outubro',
-              'Novembro',
-              'Dezembro',
-            ]}
-          />
-        </Calendar>
-      </Content>
-    </Container>
+              </NextAppointment>
+            )}
+
+            <Section>
+              <strong>Agendamentos</strong>
+
+              {appointments.length === 0 && <p>Nenhum agendamento neste dia</p>}
+
+              {appointments.map(appointment => (
+                <Appointment key={appointment.id}>
+                  <span>
+                    <FiClock />
+                    {appointment.hourFormatted}
+                  </span>
+                  <div>
+                    <img
+                      src={appointment.patient.avatar_url}
+                      alt={`${appointment.patient.first_name
+                        .charAt(0)
+                        .toUpperCase()}${appointment.patient.last_name
+                        .charAt(0)
+                        .toUpperCase()}`}
+                    />
+
+                    <strong>
+                      {`${appointment.patient.first_name} ${appointment.patient.last_name}`}
+                    </strong>
+
+                    <Link to={`/appointment/${appointment.id}`}>
+                      <FiChevronRight />
+                    </Link>
+                  </div>
+                </Appointment>
+              ))}
+            </Section>
+          </Schedule>
+
+          <Calendar>
+            <DayPicker
+              weekdaysShort={['D', 'S', 'T', 'Q', 'Q', 'S', 'S']}
+              fromMonth={new Date()}
+              disabledDays={[...disabledDays]}
+              modifiers={{
+                available: { daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
+              }}
+              onMonthChange={handleMonthChange}
+              selectedDays={selectedDate}
+              onDayClick={handleDateChange}
+              months={[
+                'Janeiro',
+                'Fevereiro',
+                'Março',
+                'Abril',
+                'Maio',
+                'Junho',
+                'Julho',
+                'Agosto',
+                'Setembro',
+                'Outubro',
+                'Novembro',
+                'Dezembro',
+              ]}
+            />
+          </Calendar>
+        </Content>
+      </Container>
+    </>
   );
 };
 

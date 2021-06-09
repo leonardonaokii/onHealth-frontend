@@ -3,20 +3,12 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '../../hooks/auth';
-import {
-  Container,
-  Header,
-  HeaderContent,
-  HeaderOptions,
-  NoAvatarContainer,
-  Profile,
-  Content,
-  Appointment,
-  TimeContainer,
-} from './styles';
+import { Container, Content, Appointment, TimeContainer } from './styles';
 
 import logoImg from '../../assets/logo.jpg';
 import api from '../../services/api';
+
+import Header from '../../components/Header';
 
 interface Appointment {
   id: string;
@@ -25,6 +17,10 @@ interface Appointment {
   patient: {
     first_name: string;
     last_name: string;
+    avatar_url: string;
+  };
+  doctor: {
+    medical_specialty: string;
     avatar_url: string;
   };
 }
@@ -76,44 +72,7 @@ const History: React.FC = () => {
 
   return (
     <Container>
-      <Header>
-        <HeaderContent>
-          <Link to="/">
-            <img src={logoImg} alt="GoBarber" />
-          </Link>
-
-          <Profile>
-            {user.avatar_url && (
-              <img src={user.avatar_url} alt={user.avatar_url} />
-            )}
-            {!user.avatar_url && (
-              <NoAvatarContainer>
-                <span>{`${user.first_name
-                  .charAt(0)
-                  .toUpperCase()}${user.last_name
-                  .charAt(0)
-                  .toUpperCase()}`}</span>
-              </NoAvatarContainer>
-            )}
-            <div>
-              <span>Bem-vindo,</span>
-              <Link to="/profile">
-                <strong>{`${user.first_name} ${user.last_name}`}</strong>
-              </Link>
-            </div>
-          </Profile>
-
-          <HeaderOptions>
-            {user.type === 'user' && (
-              <Link to="/create-appointment">Nova consulta</Link>
-            )}
-          </HeaderOptions>
-
-          <button type="button" onClick={signOut}>
-            <FiPower />
-          </button>
-        </HeaderContent>
-      </Header>
+      <Header />
       <Content>
         <h1>Histórico de consultas</h1>
 

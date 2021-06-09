@@ -15,14 +15,13 @@ import {
 } from 'react-icons/fi';
 import { Link, useHistory } from 'react-router-dom';
 
-import { ChangeEvent, useCallback, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useRef, useState, useEffect } from 'react';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { FormControlLabel, Radio } from '@material-ui/core';
 import DatePicker from 'react-datepicker';
 import Input from '../../components/Input';
-import DateInput from '../../components/DateInput';
 import Button from '../../components/Button';
 import {
   Container,
@@ -31,14 +30,12 @@ import {
   NoAvatarContainer,
   AvatarInput,
 } from './styles';
+import 'react-datepicker/dist/react-datepicker.css';
 
-import logoImg from '../../assets/logo.jpg';
 import { useToast } from '../../hooks/toast';
 import getValidationErrors from '../../utils/getValidationErrors';
 import api from '../../services/api';
 import { useAuth } from '../../hooks/auth';
-
-// falta formatar a data de nascimento e se der tempo implementar a atualização dos dados médicos.
 
 interface ProfileFormData {
   first_name: string;
@@ -49,7 +46,6 @@ interface ProfileFormData {
   old_password: string;
   password: string;
   password_confirmation: string;
-  birth_date: string;
   country: string;
   administrative_area: string;
   locality: string;
@@ -91,7 +87,6 @@ const Profile: React.FC = () => {
               otherwise: Yup.string(),
             })
             .oneOf([Yup.ref('password'), null], 'Confirmação Incorreta'),
-          birth_date: Yup.string(),
           country: Yup.string(),
           administrative_area: Yup.string(),
           locality: Yup.string(),
@@ -114,7 +109,6 @@ const Profile: React.FC = () => {
           old_password,
           password,
           password_confirmation,
-          birth_date,
           country,
           administrative_area,
           locality,
@@ -123,10 +117,6 @@ const Profile: React.FC = () => {
           // crm,
           // medical_specialty,
         } = data;
-
-        const bdate = birth_date.split('/');
-
-        const formattedDate = `${bdate[2]}-${bdate[1]}-${bdate[0]}`;
 
         console.log(genderValue);
 
@@ -141,9 +131,9 @@ const Profile: React.FC = () => {
                 gender: genderValue,
               }
             : {}),
-          ...(data.birth_date
+          ...(birthDate
             ? {
-                birth_date: formattedDate,
+                birth_date: birthDate,
               }
             : {}),
           ...(data.country
@@ -213,7 +203,7 @@ const Profile: React.FC = () => {
         });
       }
     },
-    [addToast, history, genderValue, updateUser],
+    [addToast, history, genderValue, updateUser, birthDate],
   );
 
   const handleAvatarChange = useCallback(
@@ -239,7 +229,6 @@ const Profile: React.FC = () => {
   const handleGenderRadioButton = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       setGenderValue(e.target.value);
-      // console.warn(genderValue);
     },
     [],
   );
@@ -331,7 +320,16 @@ const Profile: React.FC = () => {
               checked={genderValue === 'male'}
             />
           </div>
-
+          <div className="dateContainer">
+            <p className="dateContainer-dateLabel">Data de nascimento: </p>
+            <DatePicker
+              dateFormat="dd/MM/yyyy"
+              selected={birthDate}
+              onChange={date =>
+                date instanceof Date ? setBirthDate(date) : null
+              }
+            />
+          </div>
           <Input name="country" icon={FiMap} placeholder="País" type="text" />
           <Input
             name="administrative_area"
@@ -355,16 +353,7 @@ const Profile: React.FC = () => {
           <Button type="submit">Atualizar</Button>
         </Form>
       </Content>
-      <div>
-        <DatePicker
-          selected={birthDate}
-          onChange={date => {
-            if (date instanceof Date) {
-              setBirthDate(date);
-            }
-          }}
-        />
-      </div>
+      <div />
     </Container>
   );
 };

@@ -14,6 +14,10 @@ export const Content = styled.div`
     font-size: 36px;
     margin-bottom: 40px;
   }
+
+  .MuiAccordionDetails-root {
+    justify-content: center;
+  }
 `;
 
 export const StepsContainer = styled.div`
@@ -37,12 +41,18 @@ export const StepsContainer = styled.div`
   }
 `;
 
-export const DoctorProfile = styled.div`
+export const DoctorProfile = styled.button`
   margin: 15px 0;
+  padding: 5px 10px;
   display: flex;
   flex-direction: row;
-  justify-content: center;
   align-items: center;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+    0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+  width: 300px;
+  height: 120px;
 
   img {
     width: 100px;

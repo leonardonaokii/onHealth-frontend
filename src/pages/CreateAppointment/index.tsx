@@ -1,3 +1,4 @@
+import { DropdownItemProps } from 'react-bootstrap/esm/DropdownItem';
 import { FiChevronLeft } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
@@ -6,9 +7,30 @@ import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState, useEffect, useCallback } from 'react';
+import { DropdownButton, Dropdown } from 'react-bootstrap';
 import Header from '../../components/Header';
-import { Container, Content, StepsContainer, DoctorProfile } from './styles';
+import { Container, Content, DoctorProfile } from './styles';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import api from '../../services/api';
+
+interface MedicalSpecialty {
+  id: number;
+  name: string;
+}
+
+interface Doctor {
+  id: number;
+  medical_specialty: {
+    id: number;
+    name: string;
+  };
+  user: {
+    first_name: string;
+    last_name: string;
+    avatar_url: string;
+  };
+}
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -30,6 +52,12 @@ const useStyles = makeStyles((theme: Theme) =>
 const NewAppointment: React.FC = () => {
   const classes = useStyles();
   const [expanded, setExpanded] = useState<string | false>(false);
+  const [medSpecialties, setMedSpecialties] = useState<MedicalSpecialty[]>([]);
+  const [selectedMedSpec, setSelectedMedSpec] = useState<string>(
+    'Selecione a especialidade médica',
+  );
+  const [doctors, setDoctor] = useState<Doctor[]>([]);
+  const [selectedDoctor, setSelectedDoctor] = useState<string>('');
 
   const handleChange = (panel: string) => (
     event: ChangeEvent<Record<string, unknown>>,
@@ -37,7 +65,27 @@ const NewAppointment: React.FC = () => {
   ) => {
     setExpanded(isExpanded ? panel : false);
   };
-  const { goBack } = useHistory();
+
+  useEffect(() => {
+    api.get<MedicalSpecialty[]>('/medical-specialty').then(response => {
+      setMedSpecialties(response.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    api.get<Doctor[]>('/doctors/all').then(response => {
+      setDoctor(response.data);
+      console.log(response.data);
+    });
+  }, []);
+
+  const handleSelectMedSpec = useCallback(e => {
+    setSelectedMedSpec(e);
+  }, []);
+
+  const handleSelectDoctor = useCallback(e => {
+    setSelectedDoctor(e);
+  }, []);
 
   return (
     <Container>
@@ -56,13 +104,25 @@ const NewAppointment: React.FC = () => {
             >
               <Typography className={classes.heading}>Passo 1.</Typography>
               <Typography className={classes.secondaryHeading}>
-                Selecione a expecialidade médica.
+                Selecione a expecialidade médica que deseja realizar a consulta.
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Typography>
-                Nulla facilisi. Phasellus sollicitudin nulla et quam mattis
-                feugiat. Aliquam eget maximus est, id dignissim quam.
+                <DropdownButton
+                  id="dropdown-basic-button"
+                  title={selectedMedSpec}
+                  onSelect={handleSelectMedSpec}
+                >
+                  {medSpecialties.map(medSpec => (
+                    <Dropdown.Item
+                      eventKey={`${medSpec.id}. ${medSpec.name}`}
+                      id={medSpec.id}
+                    >
+                      {`${medSpec.id}. ${medSpec.name}`}
+                    </Dropdown.Item>
+                  ))}
+                </DropdownButton>
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -82,16 +142,18 @@ const NewAppointment: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Typography>
-                <DoctorProfile>
-                  <img
-                    src="https://cdn1.edgedatg.com/aws/v2/abc/TheGoodDoctor/person/2057217/940a0a319f940a38d6740423183e5df1/579x579-Q90_940a0a319f940a38d6740423183e5df1.jpg"
-                    alt="GD"
-                  />
-                  <div>
-                    <strong>Shawn Murphy</strong>
-                    <span>Geriatra</span>
-                  </div>
-                </DoctorProfile>
+                {doctors.map(doctor => (
+                  <DoctorProfile>
+                    <img
+                      src={doctor.user.avatar_url}
+                      alt={`${doctor.user.first_name} ${doctor.user.last_name}`}
+                    />
+                    <div>
+                      <strong>{`${doctor.user.first_name} ${doctor.user.last_name}`}</strong>
+                      <span>{doctor.medical_specialty.name}</span>
+                    </div>
+                  </DoctorProfile>
+                ))}
               </Typography>
             </AccordionDetails>
           </Accordion>

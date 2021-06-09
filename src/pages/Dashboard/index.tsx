@@ -27,8 +27,6 @@ interface MonthAvailabilityItem {
   available: boolean;
 }
 
-// Falta listar os appointments do dia.
-
 interface Appointment {
   id: string;
   date: string;
@@ -41,6 +39,11 @@ interface Appointment {
   doctor: {
     medical_specialty: string;
     avatar_url: string;
+    user: {
+      first_name: string;
+      last_name: string;
+      avatar_url: string;
+    };
   };
 }
 
@@ -150,18 +153,37 @@ const Dashboard: React.FC = () => {
                 <strong>Agendamento a seguir</strong>
                 <div>
                   <img
-                    src={nextAppointment.patient.avatar_url}
-                    alt={nextAppointment.patient.first_name}
+                    src={
+                      user.type === 'doctor'
+                        ? nextAppointment.patient.avatar_url
+                        : nextAppointment.doctor.user.avatar_url
+                    }
+                    alt={
+                      user.type === 'doctor'
+                        ? `${nextAppointment.patient.first_name
+                            .charAt(0)
+                            .toUpperCase()}${nextAppointment.patient.first_name
+                            .charAt(0)
+                            .toUpperCase()}`
+                        : `${nextAppointment.doctor.user.first_name
+                            .charAt(0)
+                            .toUpperCase()}${nextAppointment.doctor.user.last_name
+                            .charAt(0)
+                            .toUpperCase()}`
+                    }
                   />
-                  <strong>{`${nextAppointment.patient.first_name
-                    .charAt(0)
-                    .toUpperCase()}${nextAppointment.patient.first_name
-                    .charAt(0)
-                    .toUpperCase()}`}</strong>
+                  <strong>
+                    {user.type === 'doctor'
+                      ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
+                      : `${nextAppointment.doctor.user.first_name} ${nextAppointment.doctor.user.last_name}`}
+                  </strong>
                   <span>
                     <FiClock />
                     {nextAppointment.hourFormatted}
                   </span>
+                  <Link to={`/appointment/${nextAppointment.id}`}>
+                    <FiChevronRight />
+                  </Link>
                 </div>
               </NextAppointment>
             )}
@@ -179,16 +201,30 @@ const Dashboard: React.FC = () => {
                   </span>
                   <div>
                     <img
-                      src={appointment.patient.avatar_url}
-                      alt={`${appointment.patient.first_name
-                        .charAt(0)
-                        .toUpperCase()}${appointment.patient.last_name
-                        .charAt(0)
-                        .toUpperCase()}`}
+                      src={
+                        user.type === 'doctor'
+                          ? appointment.patient.avatar_url
+                          : appointment.doctor.user.avatar_url
+                      }
+                      alt={
+                        user.type === 'doctor'
+                          ? `${appointment.patient.first_name
+                              .charAt(0)
+                              .toUpperCase()}${appointment.patient.last_name
+                              .charAt(0)
+                              .toUpperCase()}`
+                          : `${appointment.doctor.user.first_name
+                              .charAt(0)
+                              .toUpperCase()}${appointment.doctor.user.last_name
+                              .charAt(0)
+                              .toUpperCase()}`
+                      }
                     />
 
                     <strong>
-                      {`${appointment.patient.first_name} ${appointment.patient.last_name}`}
+                      {user.type === 'doctor'
+                        ? `${appointment.patient.first_name} ${appointment.patient.last_name}`
+                        : `${appointment.doctor.user.first_name} ${appointment.doctor.user.last_name}`}
                     </strong>
 
                     <Link to={`/appointment/${appointment.id}`}>

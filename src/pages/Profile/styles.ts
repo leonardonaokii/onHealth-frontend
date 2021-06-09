@@ -45,6 +45,20 @@ export const Content = styled.div`
     }
   }
 
+  .dateContainer {
+    margin: 0 0 15px 0;
+    align-items: center;
+    width: 80%;
+    flex: 0 1 auto;
+    display: flex;
+
+    &-dateLabel {
+      font-size: 16px;
+      font-weight: 500;
+      margin-right: 8px;
+    }
+  }
+
   header {
     position: absolute;
 

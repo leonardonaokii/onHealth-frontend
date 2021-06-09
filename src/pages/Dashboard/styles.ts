@@ -52,7 +52,7 @@ export const NextAppointment = styled.div`
   }
 
   div {
-    background: #3e3b47;
+    background: #837fd3;
     display: flex;
     align-items: center;
     padding: 16px 24px;
@@ -78,7 +78,7 @@ export const NextAppointment = styled.div`
 
     strong {
       margin-left: 24px;
-      color: #fff;
+      color: #000000;
       font-size: 24px;
     }
 
@@ -86,11 +86,22 @@ export const NextAppointment = styled.div`
       margin-left: auto;
       display: flex;
       align-items: center;
-      color: #999591;
+      color: #000000;
 
       svg {
-        color: #837fd3;
+        color: #000000;
         margin-right: 8px;
+      }
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+      color: #f0f2f5;
+      margin-left: 10px;
+
+      &:hover {
+        color: ${shade(0.2, '#f0f2f5')};
       }
     }
   }

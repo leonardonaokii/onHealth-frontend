@@ -38,6 +38,7 @@ export const Content = styled.div`
     border-radius: 10px;
     width: 1120px;
     font-size: 18px;
+    border: none;
 
     &:hover {
       background: ${shade(0.2, '#837fd3')};
@@ -98,12 +99,6 @@ export const DoctorProfile = styled.button<SelectionButtonProps>`
       background: #c3c3c3;
     `}
 
-  img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-  }
-
   div {
     display: flex;
     flex-direction: column;
@@ -153,4 +148,49 @@ export const Hour = styled.button<SelectionButtonProps>`
     css`
       background: #c3c3c3;
     `}
+`;
+
+export const AppointmentFieldsWrapper = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  > div {
+    margin-bottom: 8px;
+  }
+`;
+
+export const SymptomsWrapper = styled.div`
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const SelectedSymptomContainer = styled.div`
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  background: #f0f2f5;
+  border-radius: 10px;
+  padding: 4px 8px;
+  margin-right: 5px;
+
+  span {
+    color: #757575;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 10px;
+      height: 10px;
+    }
+  }
 `;

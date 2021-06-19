@@ -2,12 +2,11 @@ import styled from 'styled-components';
 import { shade } from 'polished';
 
 export const Container = styled.div`
-  min-height: 930px;
-  height: 100vh;
-
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 1100px;
 `;
 
 export const Content = styled.div`
@@ -24,8 +23,8 @@ export const Content = styled.div`
   min-width: 700px;
   width: 100%;
   max-width: 700px;
-  height: 100%;
-  max-height: 930px;
+  max-height: 1100px;
+  min-height: 1100px;
 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
 
@@ -43,12 +42,36 @@ export const Content = styled.div`
         margin-right: 5px;
       }
     }
+
+    .specialty-wrapper {
+      display: flex;
+      width: 80%;
+      flex: 1;
+      align-items: center;
+      margin: 15px 0 25px 0px;
+
+      span {
+        font-size: 16px;
+        margin-right: 8px;
+        margin-top: 0;
+      }
+
+      .medical-specialty-button {
+        background: #0060df;
+        border: none;
+        color: #f0f2f5;
+        padding: 4px 8px;
+        border-radius: 10px;
+        font-size: 16px;
+        margin: 0;
+      }
+    }
   }
 
   img {
     width: 500px;
 
-    margin-top: 50px;
+    margin-top: 40px;
     margin-bottom: 20px;
     place-self: center;
   }
@@ -77,6 +100,12 @@ export const Content = styled.div`
 
     svg {
       margin-right: 16px;
+    }
+  }
+
+  .dropdown {
+    button {
+      margin: 0px 0px 5px 0px;
     }
   }
 `;

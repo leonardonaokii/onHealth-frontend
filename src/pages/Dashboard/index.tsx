@@ -5,6 +5,7 @@ import ptBR from 'date-fns/locale/pt-BR';
 import DayPicker, { DayModifiers } from 'react-day-picker';
 import { parseISO } from 'date-fns/esm';
 import { Link } from 'react-router-dom';
+import { Avatar } from '@material-ui/core';
 import {
   Container,
   Content,
@@ -48,7 +49,7 @@ interface Appointment {
 }
 
 const Dashboard: React.FC = () => {
-  const { signOut, user } = useAuth();
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -71,7 +72,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (user.type === 'doctor') {
       api
-        .get<Appointment[]>('/appointments/doctor', {
+        .get<Appointment[]>('/appointments/doctor/', {
           params: {
             year: selectedDate.getFullYear(),
             month: selectedDate.getMonth() + 1,
@@ -89,7 +90,7 @@ const Dashboard: React.FC = () => {
         });
     } else {
       api
-        .get<Appointment[]>('/appointments/user', {
+        .get<Appointment[]>('/appointments/user/', {
           params: {
             year: selectedDate.getFullYear(),
             month: selectedDate.getMonth() + 1,
@@ -151,8 +152,9 @@ const Dashboard: React.FC = () => {
             {isToday(selectedDate) && nextAppointment && (
               <NextAppointment>
                 <strong>Agendamento a seguir</strong>
-                <div>
-                  <img
+                <div className="next-appointment-content">
+                  <Avatar
+                    style={{ height: '100px', width: '100px' }}
                     src={
                       user.type === 'doctor'
                         ? nextAppointment.patient.avatar_url
@@ -160,18 +162,11 @@ const Dashboard: React.FC = () => {
                     }
                     alt={
                       user.type === 'doctor'
-                        ? `${nextAppointment.patient.first_name
-                            .charAt(0)
-                            .toUpperCase()}${nextAppointment.patient.first_name
-                            .charAt(0)
-                            .toUpperCase()}`
-                        : `${nextAppointment.doctor.user.first_name
-                            .charAt(0)
-                            .toUpperCase()}${nextAppointment.doctor.user.last_name
-                            .charAt(0)
-                            .toUpperCase()}`
+                        ? `${nextAppointment.patient.first_name}`
+                        : `${nextAppointment.doctor.user.first_name}`
                     }
                   />
+
                   <strong>
                     {user.type === 'doctor'
                       ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
@@ -182,7 +177,7 @@ const Dashboard: React.FC = () => {
                     {nextAppointment.hourFormatted}
                   </span>
                   <Link to={`/appointment/${nextAppointment.id}`}>
-                    <FiChevronRight />
+                    <FiChevronRight className="icons" />
                   </Link>
                 </div>
               </NextAppointment>
@@ -199,8 +194,9 @@ const Dashboard: React.FC = () => {
                     <FiClock />
                     {appointment.hourFormatted}
                   </span>
-                  <div>
-                    <img
+                  <div className="appointment-content">
+                    <Avatar
+                      style={{ width: '50px', height: '50px' }}
                       src={
                         user.type === 'doctor'
                           ? appointment.patient.avatar_url
@@ -208,16 +204,8 @@ const Dashboard: React.FC = () => {
                       }
                       alt={
                         user.type === 'doctor'
-                          ? `${appointment.patient.first_name
-                              .charAt(0)
-                              .toUpperCase()}${appointment.patient.last_name
-                              .charAt(0)
-                              .toUpperCase()}`
-                          : `${appointment.doctor.user.first_name
-                              .charAt(0)
-                              .toUpperCase()}${appointment.doctor.user.last_name
-                              .charAt(0)
-                              .toUpperCase()}`
+                          ? `${appointment.patient.first_name}`
+                          : `${appointment.doctor.user.first_name}`
                       }
                     />
 

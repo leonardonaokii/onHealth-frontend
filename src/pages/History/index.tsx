@@ -2,6 +2,7 @@ import { FiCalendar, FiChevronRight, FiClock, FiPower } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { parseISO, format } from 'date-fns';
+import { Avatar } from '@material-ui/core';
 import { useAuth } from '../../hooks/auth';
 import { Container, Content, Appointment, TimeContainer } from './styles';
 
@@ -21,7 +22,11 @@ interface Appointment {
   };
   doctor: {
     medical_specialty: string;
-    avatar_url: string;
+    user: {
+      first_name: string;
+      last_name: string;
+      avatar_url: string;
+    };
   };
 }
 
@@ -32,7 +37,7 @@ const History: React.FC = () => {
 
   useEffect(() => {
     if (user.type === 'doctor') {
-      api.get<Appointment[]>('appointments/doctor').then(response => {
+      api.get<Appointment[]>('appointments/doctor/').then(response => {
         const appointmentsFormatted = response.data.map(appointment => {
           const dateArray = appointment.date.split('-');
 
@@ -50,7 +55,7 @@ const History: React.FC = () => {
         setAppointments(appointmentsFormatted);
       });
     } else {
-      api.get<Appointment[]>('appointments/user').then(response => {
+      api.get<Appointment[]>('appointments/user/').then(response => {
         const appointmentsFormatted = response.data.map(appointment => {
           const dateArray = appointment.date.split('-');
 
@@ -79,18 +84,33 @@ const History: React.FC = () => {
         {appointments.length === 0 && <p>Você não possui agendamentos</p>}
 
         {appointments.map(appointment => (
-          <Appointment id={appointment.id}>
-            <Link to="/">
-              <img
-                src={appointment.patient.avatar_url}
-                alt={`${appointment.patient.first_name
-                  .charAt(0)
-                  .toUpperCase()}${appointment.patient.first_name
-                  .charAt(0)
-                  .toUpperCase()}`}
+          <Appointment id={appointment.id} key={appointment.id}>
+            <Link to={`/appointment/${appointment.id}`}>
+              <Avatar
+                style={{ width: '60px', height: '60px' }}
+                alt={
+                  user.type === 'doctor'
+                    ? `${appointment.patient.first_name
+                        .charAt(0)
+                        .toUpperCase()}${appointment.patient.first_name
+                        .charAt(0)
+                        .toUpperCase()}`
+                    : `${appointment.doctor.user.first_name
+                        .charAt(0)
+                        .toUpperCase()}${appointment.doctor.user.first_name
+                        .charAt(0)
+                        .toUpperCase()}`
+                }
+                src={
+                  user.type === 'doctor'
+                    ? appointment.patient.avatar_url
+                    : appointment.doctor.user.avatar_url
+                }
               />
               <strong>
-                {`${appointment.patient.first_name} ${appointment.patient.last_name}`}
+                {user.type === 'doctor'
+                  ? `${appointment.patient.first_name} ${appointment.patient.last_name}`
+                  : `${appointment.doctor.user.first_name} ${appointment.doctor.user.last_name}`}
               </strong>
 
               <TimeContainer>

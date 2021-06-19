@@ -46,7 +46,7 @@ const Header: React.FC = () => {
           {user.type === 'user' && (
             <Link to="/create-appointment">Novo Agendamento</Link>
           )}
-          <Link to="/history">Meu Hisórico</Link>
+          <Link to="/history">Meu Histórico</Link>
         </HeaderOptions>
 
         <button type="button" onClick={signOut}>

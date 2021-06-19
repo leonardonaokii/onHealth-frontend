@@ -51,11 +51,11 @@ export const NextAppointment = styled.div`
     font-weight: 500;
   }
 
-  div {
+  .next-appointment-content {
     background: #948fe4;
     display: flex;
     align-items: center;
-    padding: 16px 24px;
+    padding: 15px 24px;
     border-radius: 10px;
     margin-top: 24px;
     position: relative;
@@ -70,16 +70,10 @@ export const NextAppointment = styled.div`
       background: #948fe4;
     }
 
-    img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-    }
-
     strong {
       margin-left: 24px;
       color: #3e3b47;
-      font-size: 20px;
+      font-size: 28px;
     }
 
     span {
@@ -94,11 +88,11 @@ export const NextAppointment = styled.div`
       }
     }
 
-    svg {
+    .icons {
       width: 24px;
       height: 24px;
-      color: #f0f2f5;
       margin-left: 10px;
+      color: #f0f2f5;
 
       &:hover {
         color: ${shade(0.2, '#f0f2f5')};
@@ -146,7 +140,7 @@ export const Appointment = styled.div`
     }
   }
 
-  div {
+  .appointment-content {
     flex: 1;
     background: #948fe4;
     display: flex;
@@ -155,17 +149,12 @@ export const Appointment = styled.div`
     border-radius: 10px;
     margin-left: 24px;
 
-    img {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-    }
-
     strong {
-      margin-left: 24px;
+      margin: 0 0 0 24px;
       padding: 0;
       color: #3e3b47;
       font-size: 20px;
+      border: none;
     }
 
     a {

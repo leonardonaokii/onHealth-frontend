@@ -10,6 +10,8 @@ import { format } from 'date-fns';
 import { ChangeEvent, useState, useEffect, useCallback, useMemo } from 'react';
 import { DropdownButton, Dropdown } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom';
+import { FiX } from 'react-icons/fi';
+import { Avatar } from '@material-ui/core';
 import Header from '../../components/Header';
 
 import {
@@ -20,12 +22,20 @@ import {
   DateContainer,
   HourWrapper,
   Hour,
+  SymptomsWrapper,
+  AppointmentFieldsWrapper,
+  SelectedSymptomContainer,
 } from './styles';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import api from '../../services/api';
 import { useToast } from '../../hooks/toast';
 
 interface MedicalSpecialty {
+  id: number;
+  name: string;
+}
+
+interface Symptoms {
   id: number;
   name: string;
 }
@@ -74,6 +84,11 @@ const NewAppointment: React.FC = () => {
   const [selectedMedSpec, setSelectedMedSpec] = useState<string>(
     'Selecione a especialidade médica',
   );
+
+  const [symptoms, setSymptoms] = useState<Symptoms[]>([]);
+
+  const [selectedSymptoms, setSelectedSymptoms] = useState<Symptoms[]>([]);
+
   const [doctors, setDoctor] = useState<Doctor[]>([]);
 
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
@@ -100,10 +115,30 @@ const NewAppointment: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    api.get<Doctor[]>('/doctors/all').then(response => {
-      setDoctor(response.data);
+    api
+      .get<Doctor[]>('/doctors/all', {
+        params: { medical_specialty_id: selectedMedSpec.charAt(0) },
+      })
+      .then(response => {
+        setDoctor(response.data);
+      });
+  }, [selectedMedSpec]);
+
+  useEffect(() => {
+    api.get<Symptoms[]>('/symptoms').then(response => {
+      setSymptoms(response.data);
     });
   }, []);
+
+  useEffect(() => {
+    api
+      .get<Doctor[]>('/doctors/all', {
+        params: { medical_specialty_id: selectedMedSpec.charAt(0) },
+      })
+      .then(response => {
+        setDoctor(response.data);
+      });
+  }, [selectedMedSpec]);
 
   useEffect(() => {
     if (!selectedDoctor) {
@@ -119,7 +154,6 @@ const NewAppointment: React.FC = () => {
       })
       .then(response => {
         setAvailability(response.data);
-        console.log(response.data);
       });
   }, [selectedDate, selectedDoctor]);
 
@@ -137,13 +171,40 @@ const NewAppointment: React.FC = () => {
     setSelectedMedSpec(e);
   }, []);
 
+  const handleSelectSymptoms = useCallback(
+    symptomId => {
+      const symptom = symptoms.find(s => s.id === Number(symptomId));
+      if (!symptom) {
+        console.warn('invalid symptom');
+        return;
+      }
+
+      setSelectedSymptoms(prevSymptoms => [...prevSymptoms, symptom]);
+    },
+    [setSelectedSymptoms, symptoms],
+  );
+
+  const handleUnselectSymptoms = useCallback(symptomId => {
+    setSelectedSymptoms(prevSymptoms =>
+      prevSymptoms.filter(symp => symp.id !== symptomId),
+    );
+  }, []);
+
   const handleCreateAppointment = useCallback(async () => {
-    const date = selectedDate.setHours(selectedHour);
+    const date = format(
+      selectedDate.setHours(selectedHour),
+      "yyyy-MM-dd' 'HH:00",
+    );
+    console.log(date);
+
+    const formattedSymptoms = selectedSymptoms.map(symptom => ({
+      symptom_id: symptom.id,
+    }));
 
     const newAppointment = {
       doctor_id: selectedDoctor,
       date,
-      symptoms: 0,
+      symptoms: formattedSymptoms,
       description,
     };
 
@@ -171,13 +232,14 @@ const NewAppointment: React.FC = () => {
     selectedDate,
     selectedDoctor,
     selectedHour,
+    selectedSymptoms,
   ]);
 
   return (
     <Container>
       <Header />
       <Content>
-        <h1>Novo Consulta</h1>
+        <h1>Nova Consulta</h1>
         <div className={classes.root}>
           <Accordion
             expanded={expanded === 'panel1'}
@@ -194,22 +256,21 @@ const NewAppointment: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>
-                <DropdownButton
-                  id="dropdown-basic-button"
-                  title={selectedMedSpec}
-                  onSelect={handleSelectMedSpec}
-                >
-                  {medSpecialties.map(medSpec => (
-                    <Dropdown.Item
-                      eventKey={`${medSpec.id}. ${medSpec.name}`}
-                      id={medSpec.id}
-                    >
-                      {`${medSpec.id}. ${medSpec.name}`}
-                    </Dropdown.Item>
-                  ))}
-                </DropdownButton>
-              </Typography>
+              <DropdownButton
+                id="dropdown-basic-button"
+                title={selectedMedSpec}
+                onSelect={handleSelectMedSpec}
+              >
+                {medSpecialties.map(medSpec => (
+                  <Dropdown.Item
+                    eventKey={`${medSpec.id}. ${medSpec.name}`}
+                    id={medSpec.id}
+                    key={medSpec.id}
+                  >
+                    {`${medSpec.id}. ${medSpec.name}`}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
             </AccordionDetails>
           </Accordion>
           <Accordion
@@ -227,25 +288,24 @@ const NewAppointment: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>
-                <DoctorProfileContainer>
-                  {doctors.map(doctor => (
-                    <DoctorProfile
-                      onClick={() => setSelectedDoctor(doctor.id)}
-                      key={doctor.id}
-                      selected={selectedDoctor === doctor.id}
-                    >
-                      <img
-                        src={doctor.user.avatar_url}
-                        alt={`${doctor.user.first_name} ${doctor.user.last_name}`}
-                      />
-                      <div>
-                        <strong>{`${doctor.user.first_name} ${doctor.user.last_name}`}</strong>
-                      </div>
-                    </DoctorProfile>
-                  ))}
-                </DoctorProfileContainer>
-              </Typography>
+              <DoctorProfileContainer>
+                {doctors.map(doctor => (
+                  <DoctorProfile
+                    onClick={() => setSelectedDoctor(doctor.id)}
+                    key={doctor.id}
+                    selected={selectedDoctor === doctor.id}
+                  >
+                    <Avatar
+                      style={{ width: '100px', height: '100px' }}
+                      src={doctor.user.avatar_url}
+                      alt={`${doctor.user.first_name} ${doctor.user.last_name}`}
+                    />
+                    <div>
+                      <strong>{`${doctor.user.first_name} ${doctor.user.last_name}`}</strong>
+                    </div>
+                  </DoctorProfile>
+                ))}
+              </DoctorProfileContainer>
             </AccordionDetails>
           </Accordion>
           <Accordion
@@ -263,32 +323,30 @@ const NewAppointment: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>
-                <DateContainer>
-                  <DatePicker
-                    dateFormat="dd/MM/yyyy"
-                    selected={selectedDate}
-                    onChange={date =>
-                      date instanceof Date ? setSelectedDate(date) : null
-                    }
-                  />
-                  <HourWrapper className="hourAvailability">
-                    {hoursFormatted.map(
-                      availableHour =>
-                        availableHour.available && (
-                          <Hour
-                            key={availableHour.hour}
-                            type="button"
-                            onClick={() => setSelectedHour(availableHour.hour)}
-                            selected={selectedHour === availableHour.hour}
-                          >
-                            {availableHour.hourFormatted}
-                          </Hour>
-                        ),
-                    )}
-                  </HourWrapper>
-                </DateContainer>
-              </Typography>
+              <DateContainer>
+                <DatePicker
+                  dateFormat="dd/MM/yyyy"
+                  selected={selectedDate}
+                  onChange={date =>
+                    date instanceof Date ? setSelectedDate(date) : null
+                  }
+                />
+                <HourWrapper className="hourAvailability">
+                  {hoursFormatted.map(
+                    availableHour =>
+                      availableHour.available && (
+                        <Hour
+                          key={availableHour.hour}
+                          type="button"
+                          onClick={() => setSelectedHour(availableHour.hour)}
+                          selected={selectedHour === availableHour.hour}
+                        >
+                          {availableHour.hourFormatted}
+                        </Hour>
+                      ),
+                  )}
+                </HourWrapper>
+              </DateContainer>
             </AccordionDetails>
           </Accordion>
           <Accordion
@@ -307,14 +365,41 @@ const NewAppointment: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>
+              <AppointmentFieldsWrapper>
+                <DropdownButton
+                  id="dropdown-basic-button"
+                  title="Selecione os sintomas"
+                  onSelect={handleSelectSymptoms}
+                >
+                  {symptoms.map(
+                    symptom =>
+                      !selectedSymptoms.find(s => s.id === symptom.id) && (
+                        <Dropdown.Item eventKey={symptom.id} key={symptom.id}>
+                          {`${symptom.id}. ${symptom.name}`}
+                        </Dropdown.Item>
+                      ),
+                  )}
+                </DropdownButton>
+                <SymptomsWrapper>
+                  {selectedSymptoms.map(symptom => (
+                    <SelectedSymptomContainer key={symptom.id}>
+                      <span>{symptom.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUnselectSymptoms(symptom.id)}
+                      >
+                        <FiX />
+                      </button>
+                    </SelectedSymptomContainer>
+                  ))}
+                </SymptomsWrapper>
                 <TextareaAutosize
                   aria-label="minimum height"
                   rowsMin={3}
                   style={{ width: '800px' }}
                   onChange={e => setDescription(e.target.value)}
                 />
-              </Typography>
+              </AppointmentFieldsWrapper>
             </AccordionDetails>
           </Accordion>
         </div>

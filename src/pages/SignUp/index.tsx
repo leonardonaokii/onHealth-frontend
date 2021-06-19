@@ -11,19 +11,18 @@ import { Link, useHistory } from 'react-router-dom';
 import { Form } from '@unform/web';
 import * as Yup from 'yup';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormHandles } from '@unform/core';
 import { useToast } from '../../hooks/toast';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import CheckBox from '../../components/CheckBox';
+import Modal from '../../components/Modal';
 import { Container, Content } from './styles';
 
 import logoImg from '../../assets/logo.jpg';
 import getValidationErrors from '../../utils/getValidationErrors';
 import api from '../../services/api';
-
-// falta listar as especialidades médicas
 
 interface SignUpFormData {
   first_name: string;
@@ -35,7 +34,11 @@ interface SignUpFormData {
   password_confirmation: string;
   type: boolean;
   crm: string;
-  medical_specialty: number;
+}
+
+interface MedicalSpecialty {
+  id: number;
+  name: string;
 }
 
 const SignIn: React.FC = () => {
@@ -44,6 +47,19 @@ const SignIn: React.FC = () => {
   const history = useHistory();
 
   const [isChecked, setIsChecked] = useState(false);
+  const [medSpecialties, setMedSpecialties] = useState<MedicalSpecialty[]>([]);
+  const [selectedMedSpec, setSelectedMedSpec] = useState<string>();
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    api.get<MedicalSpecialty[]>('/medical-specialty').then(response => {
+      setMedSpecialties(response.data);
+    });
+  });
+
+  const handleSelectMedSpec = useCallback(e => {
+    setSelectedMedSpec(e);
+  }, []);
 
   const handleSubmit = useCallback(
     async (data: SignUpFormData) => {
@@ -70,13 +86,6 @@ const SignIn: React.FC = () => {
             then: Yup.string().required('Crm obrigatório!'),
             otherwise: Yup.string(),
           }),
-          medical_specialty: Yup.string().when('type', {
-            is: true,
-            then: Yup.string().required(
-              'A especialidade médica precisa ser informada.',
-            ),
-            otherwise: Yup.string(),
-          }),
         });
 
         await schema.validate(data, {
@@ -92,7 +101,6 @@ const SignIn: React.FC = () => {
           password,
           type,
           crm,
-          medical_specialty,
         } = data;
 
         const userType = type ? 'doctor' : 'user';
@@ -121,16 +129,26 @@ const SignIn: React.FC = () => {
 
         const user = await api.post('/users', userData);
 
-        console.log(user);
-
         if (userType === 'doctor') {
           const { id } = user.data;
 
-          const doctorData = { id, type: userType, crm, medical_specialty };
+          if (!selectedMedSpec) {
+            addToast({
+              type: 'error',
+              title: 'Erro no cadastro',
+              description: 'Selecione a especialidade médica.',
+            });
+            return;
+          }
+
+          const doctorData = {
+            id,
+            type: userType,
+            crm,
+            medical_specialty: Number(selectedMedSpec.charAt(0)),
+          };
 
           const doctor = await api.post('/doctors', doctorData);
-
-          console.log(doctor);
         }
 
         history.push('/');
@@ -154,7 +172,7 @@ const SignIn: React.FC = () => {
         });
       }
     },
-    [addToast, history],
+    [addToast, history, selectedMedSpec],
   );
 
   const handleCheckBox = useCallback(() => {
@@ -208,12 +226,17 @@ const SignIn: React.FC = () => {
           {isChecked && (
             <>
               <Input name="crm" icon={FiLock} placeholder="Crm" type="text" />
-              <Input
-                name="medical_specialty"
-                icon={FiLock}
-                placeholder="Especialidade médica"
-                type="text"
-              />
+              <div className="specialty-wrapper">
+                <span>Especialidade médica: </span>
+                <button
+                  id="medical-specialty-button"
+                  className="medical-specialty-button"
+                  type="button"
+                  onClick={() => setShowModal(!showModal)}
+                >
+                  {selectedMedSpec || 'Selecione a Especialidade Médica'}
+                </button>
+              </div>
             </>
           )}
 
@@ -225,6 +248,24 @@ const SignIn: React.FC = () => {
           Fazer Login
         </Link>
       </Content>
+      <Modal
+        title="Selecione a Especialidade"
+        showModal={showModal}
+        setShowModal={setShowModal}
+      >
+        {medSpecialties.map(medSpec => (
+          <button
+            type="button"
+            key={medSpec.id}
+            onClick={() => {
+              setSelectedMedSpec(`${medSpec.id}. ${medSpec.name}`);
+              setShowModal(!showModal);
+            }}
+          >
+            {`${medSpec.id}. ${medSpec.name}`}
+          </button>
+        ))}
+      </Modal>
     </Container>
   );
 };
